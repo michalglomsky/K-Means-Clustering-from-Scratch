@@ -45,29 +45,41 @@ def plot_comparison(data: np.ndarray, predicted_clusters: np.ndarray, true_clust
     if show:
         plt.show()
 
-def find_nearest_center(X):
+def find_nearest_center(X, Centers):
 
-    # Initialize centers
-    c1, c2, c3 = X[0], X[1], X[2]
-    # Initialize return array
-    last_ten = []
+    # Initialize return array, an array of X.shape() which stores indeces of a cluster that each object of X belongs to
+    clusters_indeces = []
 
-    for x in X[-10:]:
+    for x in X:
         # Euclidean distances for each of the centers and -i-1th points of X
-        d1 = np.sqrt(np.sum(np.square(c1-x)))
-        d2 = np.sqrt(np.sum(np.square(c2-x)))
-        d3 = np.sqrt(np.sum(np.square(c3-x)))
+        d1 = np.sqrt(np.sum(np.square(Centers[0]-x)))
+        d2 = np.sqrt(np.sum(np.square(Centers[1]-x)))
+        d3 = np.sqrt(np.sum(np.square(Centers[2]-x)))
 
         # Find nearest center and append its index to the return array
         center = min(d1,d2,d3)
         if center == d1:
-            last_ten.append(0)
+            clusters_indeces.append(0)
         elif center == d2:
-            last_ten.append(1)
+            clusters_indeces.append(1)
         elif center == d3:
-            last_ten.append(2)
+            clusters_indeces.append(2)
 
-    return last_ten
+    return clusters_indeces
+
+def calculate_new_centers(X, Centers):
+
+    # Initialize the array for storing clusters of X's features
+    clusters = [[],[],[]]
+    # Calculate the which initial center is closest to each feature
+    clusters_indeces = find_nearest_center(X, Centers)
+    
+    # Create arrays of clusters storing features belonging to them
+    for i in range(len(X)):
+        clusters[clusters_indeces[i]].append(X[i])
+
+    # Return the coordinates of new centers
+    return np.array([np.mean(cluster,axis=0) for cluster in clusters])
 
 if __name__ == '__main__':
 
@@ -89,5 +101,10 @@ if __name__ == '__main__':
     scaler = StandardScaler()
     X_full = scaler.fit_transform(X_full)
 
+    Centers = [X_full[0], X_full[1], X_full[2]]
+
     # Result of Stage 1
-    print(find_nearest_center(X_full))
+    #print(find_nearest_center(X_full, Centers))
+
+    # Result of Stage 2 - flatten the result to 1-D array as in the objective
+    print(calculate_new_centers(X_full, Centers).flatten().tolist())
