@@ -47,39 +47,60 @@ def plot_comparison(data: np.ndarray, predicted_clusters: np.ndarray, true_clust
 
 def find_nearest_center(X, Centers):
 
-    # Initialize return array, an array of X.shape() which stores indeces of a cluster that each object of X belongs to
-    clusters_indeces = []
+    # Initialize return array, an array of X.shape() which stores indices of a cluster that each object of X belongs to
+    clusters_indices = []
 
     for x in X:
-        # Euclidean distances for each of the centers and -i-1th points of X
-        d1 = np.sqrt(np.sum(np.square(Centers[0]-x)))
-        d2 = np.sqrt(np.sum(np.square(Centers[1]-x)))
-        d3 = np.sqrt(np.sum(np.square(Centers[2]-x)))
+        # Calculate the distance from the point 'x' to ALL centers at once.
+        distances = np.linalg.norm(Centers - x, axis=1)
 
         # Find nearest center and append its index to the return array
-        center = min(d1,d2,d3)
-        if center == d1:
-            clusters_indeces.append(0)
-        elif center == d2:
-            clusters_indeces.append(1)
-        elif center == d3:
-            clusters_indeces.append(2)
+        nearest_center_index = int(np.argmin(distances))
 
-    return clusters_indeces
+        clusters_indices.append(nearest_center_index)
 
-def calculate_new_centers(X, Centers):
+
+    return clusters_indices
+
+def calculate_new_centers(X, clusters_indices):
 
     # Initialize the array for storing clusters of X's features
-    clusters = [[],[],[]]
-    # Calculate the which initial center is closest to each feature
-    clusters_indeces = find_nearest_center(X, Centers)
-    
+    k = np.max(clusters_indices) + 1
+    clusters = [[] for _ in range(k)]
+
     # Create arrays of clusters storing features belonging to them
     for i in range(len(X)):
-        clusters[clusters_indeces[i]].append(X[i])
+        clusters[clusters_indices[i]].append(X[i])
 
     # Return the coordinates of new centers
     return np.array([np.mean(cluster,axis=0) for cluster in clusters])
+
+class CustomKMeans:
+    def __init__(self, k):
+
+       self.k = k
+       self.centers = None
+
+    def fit(self, X, eps=1e-6):
+        # Initialize centers and helper variable - old centers
+        current_centers = np.array([X[i] for i in range(self.k)])
+        old_centers = np.zeros_like(current_centers)
+
+        while np.linalg.norm(current_centers - old_centers) > eps:
+            # Assign current center to the old one
+            old_centers = current_centers.copy()
+
+            # Helper variable for updating the centers
+            assignments = find_nearest_center(X, old_centers)
+
+            # Update the current centers
+            current_centers = calculate_new_centers(X, assignments)
+
+        # Pass final centers to the self variable
+        self.centers = current_centers
+
+    def predict(self, X):
+       return find_nearest_center(X, self.centers)
 
 if __name__ == '__main__':
 
@@ -107,4 +128,10 @@ if __name__ == '__main__':
     #print(find_nearest_center(X_full, Centers))
 
     # Result of Stage 2 - flatten the result to 1-D array as in the objective
-    print(calculate_new_centers(X_full, Centers).flatten().tolist())
+    #print(calculate_new_centers(X_full, Centers).flatten().tolist())
+
+    # Result of Stage 3
+    custom_k_means = CustomKMeans(k=2)
+    custom_k_means.fit(X_full)
+    predicted_labels = custom_k_means.predict(X_full[:10])
+    print(predicted_labels)
