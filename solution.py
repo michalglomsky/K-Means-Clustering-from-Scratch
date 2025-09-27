@@ -3,6 +3,7 @@ from sklearn.datasets import load_wine
 from matplotlib import pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics.pairwise import euclidean_distances
 
 
 
@@ -102,6 +103,14 @@ class CustomKMeans:
     def predict(self, X):
        return find_nearest_center(X, self.centers)
 
+    def inertia(self, X):
+        # Get the assigned cluster for each point
+        indices = self.predict(X)
+        # Get the center coordinates corresponding to each point's assignment (using numpy's mapping)
+        centers = self.centers[indices]
+        # Return the inertia score
+        return float(np.sum((X - centers) ** 2))
+
 if __name__ == '__main__':
 
     # Load data
@@ -131,7 +140,24 @@ if __name__ == '__main__':
     #print(calculate_new_centers(X_full, Centers).flatten().tolist())
 
     # Result of Stage 3
-    custom_k_means = CustomKMeans(k=2)
-    custom_k_means.fit(X_full)
-    predicted_labels = custom_k_means.predict(X_full[:10])
-    print(predicted_labels)
+    #custom_k_means = CustomKMeans(k=2)
+    #custom_k_means.fit(X_full)
+    #predicted_labels = custom_k_means.predict(X_full[:10])
+    #print(predicted_labels)
+
+    # Result of Stage 4
+    inertias = []
+    k_range = range(2, 11)
+    for i in k_range:
+        # 1. Create a model with the current number of clusters (k=i)
+        kmeans = CustomKMeans(k=i)
+
+        # 2. Fit the model to the data
+        kmeans.fit(X_full)
+
+        # 3. Calculate the inertia and append it to our list
+        #    Note the parentheses () to CALL the method
+        inertia_value = kmeans.inertia(X_full)
+        inertias.append(inertia_value)
+
+    print(inertias)
