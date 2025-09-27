@@ -166,7 +166,7 @@ if __name__ == '__main__':
 
     print(inertias)"""
 
-    # Result of Stage 5
+    """# Result of Stage 5
     silhouettes = []
     k_range = range(2, 11)
     for i in k_range:
@@ -180,4 +180,18 @@ if __name__ == '__main__':
         silhouette_value = kmeans.silhouette(X_full)
         silhouettes.append(silhouette_value)
 
-    print(silhouettes)
+    print(silhouettes)"""
+
+    # Result of Stage 6
+
+    # Use k=3 for the best fit
+    kmeans = CustomKMeans(k=3)
+    kmeans.fit(X_full)
+    # Print predictions for the first 20 objects
+    print(kmeans.predict(X_full)[:20])
+
+    # Visualize the final clustering result compared to the ground truth
+    plot_comparison(data=X_full,
+                    predicted_clusters=kmeans.predict(X_full),
+                    true_clusters=y_full,
+                    centers=kmeans.centers)
