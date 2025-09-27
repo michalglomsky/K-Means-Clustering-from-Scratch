@@ -3,7 +3,7 @@ from sklearn.datasets import load_wine
 from matplotlib import pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.metrics import silhouette_score
 
 
 
@@ -111,6 +111,10 @@ class CustomKMeans:
         # Return the inertia score
         return float(np.sum((X - centers) ** 2))
 
+    def silhouette(self,X):
+        # Silhouette score calculation
+        return silhouette_score(X, self.predict(X))
+
 if __name__ == '__main__':
 
     # Load data
@@ -145,7 +149,7 @@ if __name__ == '__main__':
     #predicted_labels = custom_k_means.predict(X_full[:10])
     #print(predicted_labels)
 
-    # Result of Stage 4
+    """# Result of Stage 4
     inertias = []
     k_range = range(2, 11)
     for i in k_range:
@@ -160,4 +164,20 @@ if __name__ == '__main__':
         inertia_value = kmeans.inertia(X_full)
         inertias.append(inertia_value)
 
-    print(inertias)
+    print(inertias)"""
+
+    # Result of Stage 5
+    silhouettes = []
+    k_range = range(2, 11)
+    for i in k_range:
+        # 1. Create a model with the current number of clusters (k=i)
+        kmeans = CustomKMeans(k=i)
+
+        # 2. Fit the model to the data
+        kmeans.fit(X_full)
+
+        # 3. Calculate the silhouette scores
+        silhouette_value = kmeans.silhouette(X_full)
+        silhouettes.append(silhouette_value)
+
+    print(silhouettes)
